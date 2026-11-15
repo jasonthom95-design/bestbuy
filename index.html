@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Best Buy Self-Checkout</title>
+<style>
+:root{--blue:#003B8E;--yellow:#FFE000;--lblue:#E8F0FD;--green:#2E7D32;--red:#C62828;--dark:#1a1a1a;--mid:#555;--light:#888;--border:#e0e0e0;--bg:#f5f5f5;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden;}
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+.hdr{background:var(--blue);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.hdr-logo{display:flex;align-items:center;gap:8px;}
+.hdr-logo .nm{font-size:20px;font-weight:900;letter-spacing:-.5px;}
+.hdr-logo .sq{width:10px;height:10px;background:var(--yellow);border-radius:2px;}
+.hdr button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;margin-left:12px;}
+.store{background:var(--lblue);padding:20px 16px;border-bottom:1px solid var(--border);}
+.store small{color:var(--mid);font-size:13px;}
+.store h2{color:var(--blue);font-size:24px;font-weight:700;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
+.card{background:#fff;border-radius:10px;padding:20px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;border:1px solid var(--border);}
+.card .ico{font-size:28px;}
+.card strong{font-size:15px;font-weight:700;}
+.card span{font-size:12px;color:var(--mid);}
+.card-full{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center;}
+.scan-area{background:#111;flex:1;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:16px;cursor:pointer;}
+.scan-area p{font-size:16px;color:#ccc;}
+.scan-frame{width:200px;height:200px;border:2px solid rgba(255,255,255,.3);border-radius:8px;position:relative;display:flex;align-items:center;justify-content:center;}
+.scan-frame::before,.scan-frame::after{content:'';position:absolute;width:30px;height:30px;border-color:var(--yellow);border-style:solid;}
+.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:6px 0 0 0;}
+.scan-frame::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 6px 0;}
+.scan-pulse{font-size:48px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}}
+.cpanel{background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -4px 20px rgba(0,0,0,.12);}
+.chdr{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.chdr strong{font-size:15px;}
+.citems{padding:0 16px;}
+.citem{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.citem .th{width:52px;height:52px;background:#f0f0f0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.ci{flex:1;}
+.ci p{font-size:13px;line-height:1.4;}
+.ci strong{font-size:14px;}
+.crm{background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;font-weight:600;}
+.ctots{padding:12px 16px;}
+.ctots .row{display:flex;justify-content:space-between;font-size:14px;color:var(--mid);padding:3px 0;}
+.ctots .row.tot{font-size:17px;font-weight:700;color:var(--dark);padding-top:8px;border-top:1px solid var(--border);margin-top:6px;}
+.cacts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px 16px;}
+.btn-out{background:none;border:2px solid var(--blue);color:var(--blue);font-size:15px;font-weight:700;padding:14px;border-radius:8px;cursor:pointer;}
+.btn-pri{background:var(--yellow);border:none;color:var(--dark);font-size:15px;font-weight:700;padding:14px;border-radius:8px;cursor:pointer;}
+.btn-blk{width:100%;background:var(--blue);border:none;color:#fff;font-size:16px;font-weight:700;padding:16px;border-radius:8px;cursor:pointer;}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:flex-end;justify-content:center;}
+.ov.open{display:flex;}
+.modal{background:#fff;width:100%;max-width:430px;border-top-left-radius:20px;border-top-right-radius:20px;padding:24px 20px 36px;animation:su .25s ease;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h3{font-size:19px;font-weight:800;margin-bottom:6px;}
+.modal p{font-size:14px;color:var(--mid);margin-bottom:18px;line-height:1.5;}
+.modal label{display:block;font-size:11px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.modal input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;outline:none;margin-bottom:14px;}
+.modal input:focus{border-color:var(--blue);}
+.modal input.err{border-color:var(--red);}
+.macts{display:flex;gap:10px;}
+.mcancel{flex:1;background:#f0f0f0;border:none;font-size:15px;font-weight:600;color:var(--mid);padding:14px;border-radius:8px;cursor:pointer;}
+.mgo{flex:2;background:var(--blue);border:none;color:#fff;font-size:15px;font-weight:700;padding:14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.mgo:disabled{opacity:.5;cursor:not-allowed;}
+.mspin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;display:none;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sov{display:none;position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:300;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.sov.show{display:flex;}
+.bigspin{width:52px;height:52px;border:4px solid #e0e0e0;border-top-color:var(--blue);border-radius:50%;animation:sp .8s linear infinite;}
+.sov p{font-size:16px;color:var(--mid);font-weight:500;padding:0 32px;text-align:center;}
+#screen-complete{background:#fff;position:relative;overflow:hidden;}
+.cbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;position:relative;z-index:1;}
+.ckc{width:72px;height:72px;border:3px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s ease;}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
+.ckc svg{color:var(--green);}
+.cbody h2{font-size:26px;font-weight:800;margin-bottom:12px;}
+.cbody .sub{font-size:14px;color:var(--mid);max-width:280px;margin-bottom:6px;line-height:1.5;}
+.ebadge{font-size:13px;color:var(--green);font-weight:600;background:#E8F5E9;padding:6px 14px;border-radius:20px;margin:10px 0 24px;display:none;}
+.bcbox{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px 24px;width:100%;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.bclines{height:60px;width:100%;background:repeating-linear-gradient(90deg,#000 0,#000 2px,#fff 2px,#fff 4px,#000 4px,#000 7px,#fff 7px,#fff 9px,#000 9px,#000 10px,#fff 10px,#fff 13px,#000 13px,#000 16px,#fff 16px,#fff 18px,#000 18px,#000 19px,#fff 19px,#fff 22px);margin-bottom:8px;}
+.bcnum{font-size:11px;font-family:monospace;color:var(--mid);letter-spacing:1px;margin-bottom:12px;}
+.bcbox .tl{font-size:17px;font-weight:800;}
+.bcbox .dl{font-size:13px;color:var(--mid);margin:4px 0 8px;}
+.vlink{color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;background:none;border:none;text-decoration:underline;}
+.cfoot{padding:16px;width:100%;background:#fff;border-top:1px solid var(--border);}
+.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -6px 24px rgba(0,0,0,.18);z-index:200;padding:20px 16px 32px;display:none;max-height:85vh;overflow-y:auto;}
+.drawer.open{display:block;animation:su .25s ease;}
+.dhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.dhdr strong{font-size:16px;}
+.dhdr button{background:none;border:none;color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;}
+.di{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.di .th{width:52px;height:52px;background:#f0f0f0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.dtots{margin-top:12px;}
+.dtots .row{display:flex;justify-content:space-between;font-size:14px;color:var(--mid);padding:3px 0;}
+.dtots .row.tot{font-size:17px;font-weight:800;color:var(--dark);padding-top:8px;border-top:1px solid var(--border);margin-top:6px;}
+canvas#confetti{position:absolute;top:0;left:0;right:0;height:100%;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="hdr">
+    <div class="hdr-logo"><span class="nm">BEST BUY</span><span class="sq"></span></div>
+    <div style="display:flex;"><button>🛒</button></div>
+  </div>
+  <div class="store"><small>Welcome to</small><h2>Dearborn</h2></div>
+  <div class="grid">
+    <div class="card" onclick="goTo('screen-scan')"><span class="ico">📷</span><strong>Scan</strong><span>Product info &amp; reviews</span></div>
+    <div class="card"><span class="ico">📦</span><strong>Open Box</strong><span>Discounts at this store</span></div>
+    <div class="card card-full" onclick="goTo('screen-scan')">
+      <div><strong style="font-size:17px;">Mobile Self-Checkout</strong><p style="font-size:13px;color:var(--mid);margin-top:4px;">Scan your items. Skip the line.</p></div>
+      <span style="font-size:32px;">▤</span>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px;">
+    <div style="background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px;">
+      <strong style="font-size:14px;">Ready to take home</strong>
+      <p style="font-size:13px;color:var(--mid);margin:4px 0 12px;">Yours today, no waiting</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button style="border:1.5px solid var(--border);background:none;border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;">🛒 In your cart</button>
+        <button style="border:1.5px solid var(--border);background:none;border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;">♡ Saved</button>
+        <button style="border:1.5px solid var(--border);background:none;border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;">⟳ Recently viewed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div id="screen-scan" class="screen">
+  <div class="hdr">
+    <button onclick="goTo('screen-home')" style="margin-left:0;">✕</button>
+    <span style="font-size:17px;font-weight:600;">Self-Checkout</span>
+    <button>❓</button>
+  </div>
+  <div class="scan-area" onclick="simulateScan()">
+    <div class="scan-frame"><div class="scan-pulse">📷</div></div>
+    <p>Tap to scan an item</p>
+  </div>
+  <div class="cpanel">
+    <div class="chdr" onclick="toggleCart()">
+      <strong id="clabel">Self-Checkout Cart (0 items)</strong>
+      <span id="cchev">▾</span>
+    </div>
+    <div id="cbody">
+      <div class="citems" id="clist"><p style="padding:16px 0;color:var(--light);font-size:14px;">No items yet — tap to scan</p></div>
+      <div class="ctots" id="ctots" style="display:none;">
+        <div class="row"><span>Subtotal</span><span id="sv">$0.00</span></div>
+        <div class="row"><span>Est. Sales Tax</span><span id="tv">$0.00</span></div>
+        <div class="row tot"><strong>Total</strong><strong id="ttv">$0.00</strong></div>
+      </div>
+      <div class="cacts" id="cacts" style="display:none;">
+        <button class="btn-out" onclick="simulateScan()">Scan Another</button>
+        <button class="btn-pri" onclick="startCO()">Checkout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="ov" id="co-modal">
+  <div class="modal">
+    <h3>Send Receipt</h3>
+    <p>Enter name &amp; email — receipt fires instantly after checkout.</p>
+    <label>Your Name</label>
+    <input type="text" id="cn" placeholder="e.g. John" autocomplete="given-name">
+    <label>Gmail Address</label>
+    <input type="email" id="ce" placeholder="yourname@gmail.com" autocomplete="email">
+    <div class="macts">
+      <button class="mcancel" onclick="closeCO()">Cancel</button>
+      <button class="mgo" id="cobtn" onclick="doCO()">
+        <span class="mspin" id="cospin"></span>
+        <span id="colbl">Complete &amp; Send Receipt</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SENDING -->
+<div class="sov" id="sov">
+  <div class="bigspin"></div>
+  <p id="sstatus">Sending receipt…</p>
+</div>
+
+<!-- COMPLETE -->
+<div id="screen-complete" class="screen">
+  <canvas id="confetti"></canvas>
+  <div class="cbody">
+    <div class="ckc">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <h2>Checkout Complete!</h2>
+    <p class="sub">At the exit, show this screen to an employee and they'll remove any security tags.</p>
+    <div class="ebadge" id="ebadge">✉ Receipt emailed to <span id="eaddr"></span></div>
+    <div class="bcbox">
+      <div class="bclines"></div>
+      <div class="bcnum" id="bcnum">0100001067910585888680431563680672</div>
+      <p class="tl" id="ctotal">Total $0.00 — 0 items</p>
+      <p class="dl" id="cdate"></p>
+      <button class="vlink" onclick="openD()">View Details</button>
+    </div>
+  </div>
+  <div class="cfoot"><button class="btn-blk" onclick="resetAll()">Done</button></div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drw">
+  <div class="dhdr">
+    <strong>Purchase Details (<span id="dcount">0</span> items)</strong>
+    <button onclick="closeD()">Close</button>
+  </div>
+  <p style="font-size:14px;font-weight:700;margin-bottom:12px;" id="ddate"></p>
+  <div id="ditems"></div>
+  <div class="dtots" id="dtots"></div>
+</div>
+<div id="dback" onclick="closeD()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;"></div>
+
+<script>
+// ── Resend config ────────────────────────────────────────────
+const RESEND_API_KEY = 're_2gNVqUAt_4jhYtPRmKfCLZMuJ7oYvRRvu';
+// ─────────────────────────────────────────────────────────────
+
+const CAT=[
+  {id:'zelda',name:'Switch 2 – The Legend of Zelda – 40th Anniversary Edition',price:519.99,e:'🎮'},
+  {id:'ps5',name:'PlayStation 5 God of War Ragnarök Console Bundle',price:839.99,e:'🎮'},
+  {id:'tv',name:'Samsung 65” QLED 4K Smart TV (QN65Q80D)',price:1099.99,e:'📺'},
+  {id:'mac',name:'MacBook Air 15” M3 Chip, 16GB RAM, 512GB SSD',price:1299.99,e:'💻'},
+  {id:'sony',name:'Sony WH-1000XM5 Wireless Noise Canceling Headphones',price:279.99,e:'🎧'},
+  {id:'iph',name:'Apple iPhone 15 Pro Max 256GB – Natural Titanium',price:1199.99,e:'📱'}
+];
+let cart=[],si=0,co=true;
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function gTxn(){return`${rnd(100000,999999)}-${rnd(100000,999999)}-${rnd(100000,999999)}-${rnd(10000,99999)}-${rnd(100000,999999)}-${rnd(10000,99999)}`;}
+function gApp(){return String(rnd(100000,999999));}
+function gBC(){return`01${rnd(10000,99999)}${rnd(10000000,99999999)}${rnd(100000,999999)}${rnd(100000,999999)}`;}
+function gMem(){return String(rnd(1000000000,9999999999));}
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function simulateScan(){
+  const a=CAT.filter(c=>!cart.find(x=>x.id===c.id));
+  if(!a.length){alert('All demo items scanned!');return;}
+  cart.push({...a[si%a.length]});si++;renderCart();
+}
+function removeItem(i){cart.splice(i,1);renderCart();}
+function renderCart(){
+  const cl=document.getElementById('clist'),ct=document.getElementById('ctots'),ca=document.getElementById('cacts'),lb=document.getElementById('clabel');
+  if(!cart.length){cl.innerHTML='<p style="padding:16px 0;color:var(--light);font-size:14px;">No items yet — tap to scan</p>';ct.style.display='none';ca.style.display='none';lb.textContent='Self-Checkout Cart (0 items)';return;}
+  lb.textContent=`Self-Checkout Cart (${cart.length} item${cart.length>1?'s':''})`;
+  cl.innerHTML=cart.map((it,i)=>`<div class="citem"><div class="th">${it.e}</div><div class="ci"><p>${it.name}</p><strong>$${it.price.toFixed(2)}</strong></div><button class="crm" onclick="removeItem(${i})">Remove</button></div>`).join('');
+  const sub=cart.reduce((s,i)=>s+i.price,0),tax=+(sub*.06).toFixed(2),tot=+(sub+tax).toFixed(2);
+  document.getElementById('sv').textContent='$'+sub.toFixed(2);
+  document.getElementById('tv').textContent='$'+tax.toFixed(2);
+  document.getElementById('ttv').textContent='$'+tot.toFixed(2);
+  ct.style.display='block';ca.style.display='grid';
+}
+function toggleCart(){co=!co;document.getElementById('cbody').style.display=co?'block':'none';document.getElementById('cchev').textContent=co?'▾':'▸';}
+function startCO(){
+  if(!cart.length)return;
+  document.getElementById('cn').value='';document.getElementById('ce').value='';
+  document.getElementById('ce').className='';document.getElementById('cobtn').disabled=false;
+  document.getElementById('cospin').style.display='none';document.getElementById('colbl').textContent='Complete & Send Receipt';
+  document.getElementById('co-modal').classList.add('open');
+}
+function closeCO(){document.getElementById('co-modal').classList.remove('open');}
+async function doCO(){
+  const name=document.getElementById('cn').value.trim()||'Valued Customer';
+  const email=document.getElementById('ce').value.trim();
+  const el=document.getElementById('ce');
+  if(!email||!email.includes('@')){el.classList.add('err');return;}
+  el.classList.remove('err');
+  document.getElementById('cobtn').disabled=true;
+  document.getElementById('cospin').style.display='inline-block';
+  document.getElementById('colbl').textContent='Processing…';
+  const sub=cart.reduce((s,i)=>s+i.price,0),tax=+(sub*.06).toFixed(2),total=+(sub+tax).toFixed(2);
+  const now=new Date();
+  const dS=now.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'});
+  const tS=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+  const dL=now.toLocaleString('en-US',{weekday:'short',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+  const txn=gTxn(),appr=gApp(),bc=gBC(),mem=gMem();
+  closeCO();
+  const ov=document.getElementById('sov');ov.classList.add('show');
+  document.getElementById('sstatus').textContent='Processing order…';
+  const lw=48;
+  const pad=(l,r,w)=>{const g=w-l.length-r.length;return l+' '.repeat(Math.max(1,g))+r;};
+  const ctr=(s,w)=>{const p=Math.max(0,Math.floor((w-s.length)/2));return ' '.repeat(p)+s;};
+  let iL=cart.map(it=>{const pr='$'+it.price.toFixed(2);if(it.name.length+pr.length+1<=lw)return pad(it.name,pr,lw);const ls=[];let n=it.name;while(n.length>lw-10){ls.push(n.slice(0,lw));n=n.slice(lw);}ls.push(pad(n,pr,lw));return ls.join('\n');}).join('\n');
+  const rcptTxt=[ctr('*********** START RECEIPT ***********',lw),ctr('Welcome to Best Buy #001',lw),ctr('123 Commerce Dr',lw),ctr('Dearborn, MI 48000',lw),'',`Val:${txn}`,`     0410 399 4324   ${dS} ${tS}`,'',iL,'',pad('Sales Tax','$'+tax.toFixed(2),lw),' '.repeat(28)+'------------',pad(' '.repeat(20)+'Subtotal','$'+sub.toFixed(2),lw),pad(' '.repeat(20)+'Sales Tax','$'+tax.toFixed(2),lw),' '.repeat(28)+'============',pad(' '.repeat(26)+'Total','$'+total.toFixed(2),lw),`**********${appr.slice(-4)}     $${total.toFixed(2)}`,'VISA',`Approval ${appr}`,'CARD ENTRY: CARDONFILE','','My Best Buy',`Member ID ${mem}`,'',ctr('Return/Exchange Policy: 15 days on most',lw),ctr('purchases. Activatable devices have a',lw),ctr('14-day return policy (30 days for Verizon',lw),ctr('activatable devices). For details, go to',lw),ctr('BestBuy.com/Returns. To learn about privacy',lw),ctr('practices, go to BestBuy.com/Privacy.',lw)].join('\n');
+  const itemRows=cart.map(it=>`<tr><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333;line-height:1.4;">${it.e} ${it.name}</td><td style="padding:12px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333;text-align:right;white-space:nowrap;font-weight:600;">$${it.price.toFixed(2)}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#f0f0f0;font-family:Arial,Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0f0;padding:20px 0;"><tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#ffffff;border-radius:4px;overflow:hidden;"><!-- HEADER --><tr><td style="background:#003B8E;padding:20px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="vertical-align:middle;"><table cellpadding="0" cellspacing="0"><tr><td style="background:#fff;padding:6px 10px;border-radius:3px;"><span style="font-size:18px;font-weight:900;color:#003B8E;letter-spacing:-.5px;font-family:Arial,sans-serif;">BEST BUY</span><span style="display:inline-block;width:8px;height:8px;background:#FFE000;border-radius:1px;margin-left:3px;vertical-align:middle;"></span></td></tr></table></td><td align="right" style="vertical-align:middle;"><span style="color:#fff;font-size:14px;font-weight:600;">${name}</span><br><a href="#" style="color:rgba(255,255,255,0.8);font-size:12px;text-decoration:underline;">View Account</a></td></tr></table></td></tr><!-- THANK YOU --><tr><td style="padding:32px 24px 24px;text-align:center;border-bottom:1px solid #eeeeee;"><div style="font-size:36px;margin-bottom:16px;">🧾</div><h1 style="font-size:24px;font-weight:700;color:#1a1a1a;margin:0 0 12px;line-height:1.3;">Thank you for<br>shopping with us.</h1><p style="font-size:15px;color:#555;margin:0;">Here's a copy of your receipt.</p></td></tr><!-- STORE INFO --><tr><td style="padding:16px 24px;background:#fafafa;border-bottom:1px solid #eeeeee;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:13px;color:#666;">Store: <strong style="color:#333;">Best Buy Dearborn #001</strong></td><td align="right" style="font-size:13px;color:#666;">${dS} at ${tS}</td></tr></table></td></tr><!-- ITEMS --><tr><td style="padding:20px 24px 0;"><p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.8px;margin:0 0 12px;">Items Purchased</p><table width="100%" cellpadding="0" cellspacing="0">${itemRows}</table></td></tr><!-- TOTALS --><tr><td style="padding:16px 24px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:4px 0;font-size:14px;color:#555;">Subtotal</td><td align="right" style="padding:4px 0;font-size:14px;color:#555;">$${sub.toFixed(2)}</td></tr><tr><td style="padding:4px 0;font-size:14px;color:#555;">Sales Tax</td><td align="right" style="padding:4px 0;font-size:14px;color:#555;">$${tax.toFixed(2)}</td></tr><tr><td style="padding:12px 0 4px;font-size:17px;font-weight:700;color:#1a1a1a;border-top:2px solid #1a1a1a;">Total</td><td align="right" style="padding:12px 0 4px;font-size:17px;font-weight:700;color:#1a1a1a;border-top:2px solid #1a1a1a;">$${total.toFixed(2)}</td></tr></table></td></tr><!-- BARCODE --><tr><td style="padding:20px 24px;text-align:center;background:#fafafa;border-top:1px solid #eeeeee;border-bottom:1px solid #eeeeee;"><div style="height:60px;background:repeating-linear-gradient(90deg,#000 0,#000 2px,#fff 2px,#fff 4px,#000 4px,#000 7px,#fff 7px,#fff 9px,#000 9px,#000 10px,#fff 10px,#fff 13px,#000 13px,#000 16px,#fff 16px,#fff 18px,#000 18px,#000 19px,#fff 19px,#fff 22px);max-width:320px;margin:0 auto 8px;border-radius:2px;"></div><div style="font-family:'Courier New',monospace;font-size:10px;color:#888;letter-spacing:1px;">${bc}</div></td></tr><!-- TRANSACTION --><tr><td style="padding:16px 24px;border-bottom:1px solid #eeeeee;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:12px;color:#888;padding:3px 0;">Transaction #</td><td align="right" style="font-size:12px;color:#555;font-family:monospace;">${txn.slice(0,18)}</td></tr><tr><td style="font-size:12px;color:#888;padding:3px 0;">My Best Buy Member</td><td align="right" style="font-size:12px;color:#555;font-family:monospace;">${mem}</td></tr><tr><td style="font-size:12px;color:#888;padding:3px 0;">Approval Code</td><td align="right" style="font-size:12px;color:#555;font-family:monospace;">${appr}</td></tr></table></td></tr><!-- RETURN POLICY --><tr><td style="padding:16px 24px;background:#fff8e1;border-bottom:1px solid #eeeeee;"><p style="font-size:12px;color:#666;margin:0;line-height:1.6;"><strong style="color:#333;">Return &amp; Exchange Policy:</strong> 15 days on most purchases. Activatable devices have a 14-day return policy (30 days for Verizon activatable devices). <a href="https://www.bestbuy.com/site/help-topics/return-exchange-policy/pcmcat260800050014.c" style="color:#003B8E;">Learn more</a></p></td></tr><!-- FOOTER --><tr><td style="padding:20px 24px;text-align:center;background:#f8f8f8;"><p style="font-size:12px;color:#999;margin:0 0 8px;">© Best Buy Co., Inc. All rights reserved.</p><p style="font-size:12px;margin:0;"><a href="https://www.bestbuy.com" style="color:#003B8E;text-decoration:none;">BestBuy.com</a> &nbsp;|&nbsp; <a href="https://www.bestbuy.com/site/help-topics/return-exchange-policy/pcmcat260800050014.c" style="color:#003B8E;text-decoration:none;">Returns</a> &nbsp;|&nbsp; <a href="https://www.bestbuy.com/site/misc/privacy-policy/pcmcat204400050062.c" style="color:#003B8E;text-decoration:none;">Privacy Policy</a></p></td></tr></table></td></tr></table></body></html>`;
+  document.getElementById('sstatus').textContent='Sending to '+email+'…';
+  let sent=false;
+  try{
+    const resp=await fetch('https://yellow-wildflower-9e00.skitts784.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email:email,
+        name:name,
+        subject:"Your Best Buy receipt.",
+        html:html
+      })
+    });
+    if(resp.ok){sent=true;}
+    else{
+      let errMsg='HTTP '+resp.status;
+      try{const err=await resp.json();errMsg=err.message||JSON.stringify(err);}catch(e2){}
+      document.getElementById('sstatus').textContent='⚠️ Send failed: '+errMsg;
+    }
+  }catch(e){
+    console.error('Worker error:',e);
+    document.getElementById('sstatus').textContent='⚠️ Error: '+(e.message||String(e));
+  }
+  if(sent)document.getElementById('sstatus').textContent='✅ Receipt sent to '+email+'!';
+  await new Promise(r=>setTimeout(r,sent?1400:2400));
+  ov.classList.remove('show');
+  document.getElementById('bcnum').textContent=bc;
+  const ds=now.toLocaleDateString('en-US',{month:'long',day:'numeric'})+' — '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}).toLowerCase();
+  document.getElementById('ctotal').textContent=`Total $${total.toFixed(2)} — ${cart.length} item${cart.length>1?'s':''}`;
+  document.getElementById('cdate').textContent=ds;
+  if(sent){document.getElementById('eaddr').textContent=email;document.getElementById('ebadge').style.display='inline-block';}
+  document.getElementById('dcount').textContent=cart.length;
+  document.getElementById('ddate').textContent=dL;
+  document.getElementById('ditems').innerHTML=cart.map(it=>`<div class="di"><div class="th">${it.e}</div><div><p style="font-size:13px;line-height:1.4;">${it.name}</p><strong>$${it.price.toFixed(2)}</strong></div></div>`).join('');
+  document.getElementById('dtots').innerHTML=`<div class="row"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div><div class="row"><span>Est. Sales Tax</span><span>$${tax.toFixed(2)}</span></div><div class="row tot"><strong>Total</strong><strong>$${total.toFixed(2)}</strong></div>`;
+  goTo('screen-complete');launchConfetti();
+}
+function openD(){document.getElementById('drw').classList.add('open');document.getElementById('dback').style.display='block';}
+function closeD(){document.getElementById('drw').classList.remove('open');document.getElementById('dback').style.display='none';}
+function resetAll(){cart=[];si=0;document.getElementById('ebadge').style.display='none';renderCart();goTo('screen-home');}
+function launchConfetti(){
+  const cv=document.getElementById('confetti'),ctx=cv.getContext('2d');
+  cv.width=cv.parentElement.offsetWidth;cv.height=cv.parentElement.offsetHeight;
+  const cols=['#003B8E','#FFE000','#1565C0','#F9A825','#0D47A1','#FDD835'];
+  const pp=Array.from({length:140},()=>({x:Math.random()*cv.width,y:Math.random()*-cv.height,w:7+Math.random()*9,h:9+Math.random()*11,c:cols[~~(Math.random()*cols.length)],r:Math.random()*Math.PI*2,vx:(Math.random()-.5)*2.5,vy:2.5+Math.random()*4,vr:(Math.random()-.5)*.15}));
+  let f=0;(function draw(){ctx.clearRect(0,0,cv.width,cv.height);pp.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.globalAlpha=Math.max(0,1-p.y/cv.height);ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});if(++f<200)requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);})();
+}
+</script>
+</body>
+</html>
