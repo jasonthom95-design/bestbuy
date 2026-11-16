@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <!-- Deep glassy dark base: rich near-black with blue-grey undertone like iOS -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#2a2a2e"/>
+      <stop offset="45%" stop-color="#111114"/>
+      <stop offset="100%" stop-color="#06060a"/>
+    </linearGradient>
+    <!-- Top glass sheen: soft white highlight at the top edge -->
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Subtle inner glow / rim light on left edge -->
+    <linearGradient id="rimLight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Clip to rounded square -->
+    <clipPath id="roundClip">
+      <rect width="512" height="512" rx="100"/>
+    </clipPath>
+    <!-- Yellow tag gloss -->
+    <linearGradient id="tagGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe94d"/>
+      <stop offset="100%" stop-color="#e6b800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base dark glass background -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGrad)"/>
+
+  <!-- Glass layers clipped to shape -->
+  <g clip-path="url(#roundClip)">
+    <!-- Top sheen highlight (top ~40% of icon) -->
+    <rect width="512" height="512" fill="url(#sheen)"/>
+    <!-- Left rim light -->
+    <rect width="512" height="512" fill="url(#rimLight)"/>
+    <!-- Very subtle specular oval at top-center -->
+    <ellipse cx="256" cy="30" rx="180" ry="38" fill="#ffffff" opacity="0.06"/>
+    <!-- Bottom dark vignette for depth -->
+    <radialGradient id="vign" cx="50%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <rect width="512" height="512" fill="url(#vign)"/>
+  </g>
+
+  <!-- BEST text -->
+  <text x="52" y="210" font-family="Arial Black, Arial" font-weight="900" font-size="118" fill="#ffffff" letter-spacing="-1">BEST</text>
+  <!-- BUY text -->
+  <text x="52" y="326" font-family="Arial Black, Arial" font-weight="900" font-size="118" fill="#ffffff" letter-spacing="-1">BUY</text>
+
+  <!-- Yellow price tag with gloss -->
+  <path d="M310,296 L450,296 Q462,296 462,308 L462,356 Q462,368 450,368 L310,368 L282,332 Z" fill="url(#tagGloss)"/>
+  <!-- Tag gloss sheen -->
+  <path d="M310,296 L450,296 Q462,296 462,308 L462,328 L282,316 L294,296 Z" fill="#ffffff" opacity="0.18"/>
+  <!-- Hole -->
+  <circle cx="304" cy="332" r="9" fill="#000000" opacity="0.75"/>
+</svg>
